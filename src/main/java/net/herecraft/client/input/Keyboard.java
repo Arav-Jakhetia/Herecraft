@@ -9,4 +9,8 @@ public class Keyboard {
             glfwSetWindowShouldClose(window, true);
         }
     }
+
+    public static boolean isKeyDown(int key) {
+        return glfwGetKey(window, key) == GLFW_TRUE;
+    }
 }
