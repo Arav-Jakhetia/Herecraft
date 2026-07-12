@@ -1,47 +1,39 @@
 package net.herecraft.client.block;
 
 public class Block {
-    private final boolean solid;
-    private final float red;
-    private final float green;
-    private final float blue;
+    public static final int GRASS_BLOCK_TOP_TEXTURE = 0;
+    public static final int DIRT_TEXTURE = 1;
+    public static final int STONE_TEXTURE = 2;
 
-    public Block(boolean solid, float red, float green, float blue) {
+    private final boolean solid;
+    private final int textureLayer;
+
+    public Block(boolean solid, int textureLayer) {
         this.solid = solid;
-        this.red = red;
-        this.green = green;
-        this.blue = blue;
+        this.textureLayer = textureLayer;
     }
 
     public boolean isSolid() {
         return solid;
     }
 
-    public float red() {
-        return red;
-    }
-
-    public float green() {
-        return green;
-    }
-
-    public float blue() {
-        return blue;
+    public int getTextureLayer() {
+        return textureLayer;
     }
 
     public static Block air() {
-        return new Block(false, 0.0f, 0.0f, 0.0f);
+        return new Block(false, -1);
     }
 
     public static Block grass() {
-        return new Block(true, 0.2f, 0.7f, 0.25f);
+        return new Block(true, GRASS_BLOCK_TOP_TEXTURE);
     }
 
     public static Block dirt() {
-        return new Block(true, 0.45f, 0.28f, 0.12f);
+        return new Block(true, DIRT_TEXTURE);
     }
 
     public static Block stone() {
-        return new Block(true, 0.45f, 0.45f, 0.48f);
+        return new Block(true, STONE_TEXTURE);
     }
 }

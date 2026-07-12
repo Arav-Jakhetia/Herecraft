@@ -8,10 +8,50 @@ import java.util.List;
 public class Chunk {
     public static final int SIZE = 16;
 
-    private final Block[][][] blocks = new Block[SIZE][SIZE][SIZE];
+    private final int chunkX;
+    private final int chunkZ;
+    private final World world;
+    private final Block blocks[][][] = new Block[SIZE][SIZE][SIZE];
 
-    public Chunk() {
+
+    public Chunk(int chunkX, int chunkZ, World world) {
+        this.chunkX = chunkX;
+        this.chunkZ = chunkZ;
+        this.world = world;
         generateBasicTerrain();
+    }
+
+    public int getChunkX() {
+        return chunkX;
+    }
+
+    public int getChunkZ() {
+        return chunkZ;
+    }
+
+    public Block getBlockLocal(int x, int y, int z) {
+        if(x < 0 || x >= SIZE || y < 0 || y >= SIZE || z < 0 || z >= SIZE) {
+            return Block.air();
+        }
+        return blocks[x][y][z];
+    }
+
+    public void setBlockLocal(int x, int y, int z, Block block) {
+        if(x < 0 || x >= SIZE || y < 0 || y >= SIZE || z < 0 || z >= SIZE) {
+            return;
+        }
+        blocks[x][y][z] = block;
+    }
+
+    public boolean isSolidBlockLocal(int x, int y, int z) {
+        if(x < 0 || x >= SIZE || z < 0 || z >= SIZE) {
+            int worldX = chunkX * SIZE + x;
+            int worldZ = chunkZ * SIZE + z;
+            return world.isSolidBlock(worldX, y, worldZ);
+        }
+        if(y < 0 || y >= SIZE) return false;
+
+        return blocks[x][y][z].isSolid();
     }
 
     public float[] buildMesh() {
@@ -35,7 +75,7 @@ public class Chunk {
             }
         }
 
-        float[] mesh = new float[vertices.size()];
+        float mesh[] = new float[vertices.size()];
         for(int i = 0; i < vertices.size(); i++) {
             mesh[i] = vertices.get(i);
         }
@@ -53,17 +93,16 @@ public class Chunk {
 
         for(int x = 0; x < SIZE; x++) {
             for(int z = 0; z < SIZE; z++) {
-                int height = 4 + ((x + z) % 3);
+                blocks[x][0][z] = Block.stone();
+                blocks[x][1][z] = Block.stone();
+                blocks[x][2][z] = Block.stone();
+                blocks[x][3][z] = Block.stone();
+                blocks[x][4][z] = Block.stone();
 
-                for(int y = 0; y <= height; y++) {
-                    if(y == height) {
-                        blocks[x][y][z] = Block.grass();
-                    } else if(y > height - 3) {
-                        blocks[x][y][z] = Block.dirt();
-                    } else {
-                        blocks[x][y][z] = Block.stone();
-                    }
-                }
+                blocks[x][5][z] = Block.dirt();
+                blocks[x][6][z] = Block.dirt();
+
+                blocks[x][7][z] = Block.grass();
             }
         }
     }
@@ -76,27 +115,32 @@ public class Chunk {
     }
 
     private void addFace(List<Float> vertices, Block block, int x, int y, int z, Face face) {
-        float[][] corners = face.corners;
-        int[] order = {0, 1, 2, 2, 3, 0};
-        float shade = face.shade;
+        float corners[][] = face.corners;
+        float uvs[][] = face.uvs;
+        int order[] = {0, 1, 2, 2, 3, 0};
 
         for(int index : order) {
-            float[] corner = corners[index];
+            float corner[] = corners[index];
+            float uv[] = uvs[index];
+
             vertices.add(x + corner[0]);
             vertices.add(y + corner[1]);
             vertices.add(z + corner[2]);
-            vertices.add(block.red() * shade);
-            vertices.add(block.green() * shade);
-            vertices.add(block.blue() * shade);
+
+            vertices.add(uv[0]);
+            vertices.add(uv[1]);
+
+            vertices.add(face.shade);
+            vertices.add((float)block.getTextureLayer());
         }
     }
 
     private enum Face {
         BACK(new float[][] {
                 {0.0f, 0.0f, 0.0f},
+                {0.0f, 1.0f, 0.0f},
                 {1.0f, 1.0f, 0.0f},
-                {1.0f, 0.0f, 0.0f},
-                {0.0f, 1.0f, 0.0f}
+                {1.0f, 0.0f, 0.0f}
         }, 0.70f),
         FRONT(new float[][] {
                 {0.0f, 0.0f, 1.0f},
@@ -129,10 +173,14 @@ public class Chunk {
                 {1.0f, 1.0f, 0.0f}
         }, 1.0f);
 
-        private final float[][] corners;
-        private final float shade;
+        private final float shade, corners[][], uvs[][] = {
+                {0.0f, 0.0f},
+                {0.0f, 1.0f},
+                {1.0f, 1.0f},
+                {1.0f, 0.0f}
+        };
 
-        Face(float[][] corners, float shade) {
+        Face(float corners[][], float shade) {
             this.corners = corners;
             this.shade = shade;
         }

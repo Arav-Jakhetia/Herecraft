@@ -1,51 +1,92 @@
 package net.herecraft.client.render;
 
-import net.herecraft.client.math.Matrix4;
+import org.joml.Matrix4f;
+import org.joml.Vector3f;
 
 public class Camera {
-    private final float aspect;
-    private float x = 18.0f;
-    private float y = 10.0f;
-    private float z = 24.0f;
+    private Vector3f position;
+    private Vector3f orientation;
 
-    private final float forwardX = -0.55f;
-    private final float forwardY = -0.25f;
-    private final float forwardZ = -0.80f;
+    private float yaw = 0;
+    private float pitch = 0;
 
-    public Camera(float aspect) {
-        this.aspect = aspect;
+    public Camera(float x, float y, float z) {
+        position = new Vector3f(x, y, z);
+        orientation = new Vector3f(0, 1, 0);
     }
 
-    public void move(float dx, float dy, float dz) {
-        x += dx;
-        y += dy;
-        z += dz;
+    public void translate(float x, float y, float z) {
+        Vector3f offset = new Vector3f(x, y, z);
+        offset.rotateY((float)Math.toRadians(yaw), offset);
+
+        position.x += offset.x;
+        position.y += offset.y;
+        position.z += offset.z;
     }
 
-    public float forwardX() {
-        return forwardX;
+    public float getYaw() {
+        return yaw;
     }
 
-    public float forwardZ() {
-        return forwardZ;
+    public void setPosition(Vector3f newPosition) {
+        position.set(newPosition);
     }
 
-    public float rightX() {
-        return -forwardZ;
+    public void setlookDir(float x, float y) {
+        yaw = x;
+        pitch = Math.max(-89.0f, Math.min(89.0f, y));
     }
 
-    public float rightZ() {
-        return forwardX;
+    public Matrix4f getMatrix() {
+        Vector3f lookPoint = new Vector3f(position).add(getForward());
+
+        Matrix4f matrix = new Matrix4f();
+        matrix.lookAt(position, lookPoint, orientation, matrix);
+
+        return matrix;
     }
 
-    public float[] viewProjection() {
-        float[] projection = Matrix4.perspective((float)Math.toRadians(60.0f), aspect, 0.1f, 100.0f);
-        float[] view = Matrix4.lookAt(
-                x, y, z,
-                x + forwardX, y + forwardY, z + forwardZ,
-                0.0f, 1.0f, 0.0f
-        );
+    public Vector3f getPosition() {
+        return new Vector3f(position);
+    }
 
-        return Matrix4.multiply(projection, view);
+    public Vector3f getForward() {
+        float yawRad = (float)Math.toRadians(yaw);
+        float pitchRad = (float)Math.toRadians(pitch);
+
+        Vector3f forward = new Vector3f();
+
+        forward.x = (float)(Math.sin(yawRad) * Math.cos(pitchRad));
+        forward.y = (float)Math.sin(pitchRad);
+        forward.z = (float)(-Math.cos(yawRad) * Math.cos(pitchRad));
+
+        forward.normalize();
+        return forward;
+    }
+
+    public void moveForward(float amount) {
+        Vector3f forward = getForward();
+        forward.y = 0.0f;
+        forward.normalize();
+
+        position.add(forward.mul(amount));
+    }
+
+    public void moveRight(float amount) {
+        Vector3f right = getRight();
+        right.y = 0.0f;
+        right.normalize();
+
+        position.add(right.mul(amount));
+    }
+
+    public void moveUp(float amount) {
+        position.y += amount;
+    }
+
+    public Vector3f getRight() {
+        Vector3f right = getForward().cross(new Vector3f(0, 1, 0));
+        right.normalize();
+        return right;
     }
 }

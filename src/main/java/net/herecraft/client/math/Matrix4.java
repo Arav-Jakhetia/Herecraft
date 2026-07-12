@@ -3,7 +3,7 @@ package net.herecraft.client.math;
 public class Matrix4 {
     public static float[] perspective(float fov, float aspect, float near, float far) {
         float tanHalfFov = (float)Math.tan(fov / 2.0f);
-        float[] result = new float[16];
+        float result[] = new float[16];
 
         result[0] = 1.0f / (aspect * tanHalfFov);
         result[5] = 1.0f / tanHalfFov;
@@ -19,11 +19,11 @@ public class Matrix4 {
             float centerX, float centerY, float centerZ,
             float upX, float upY, float upZ
     ) {
-        float[] forward = normalize(centerX - eyeX, centerY - eyeY, centerZ - eyeZ);
-        float[] side = normalize(cross(forward[0], forward[1], forward[2], upX, upY, upZ));
-        float[] up = cross(side[0], side[1], side[2], forward[0], forward[1], forward[2]);
+        float forward[] = normalize(centerX - eyeX, centerY - eyeY, centerZ - eyeZ);
+        float side[] = normalize(cross(forward[0], forward[1], forward[2], upX, upY, upZ));
+        float up[] = cross(side[0], side[1], side[2], forward[0], forward[1], forward[2]);
 
-        float[] result = identity();
+        float result[] = identity();
         result[0] = side[0];
         result[4] = side[1];
         result[8] = side[2];
@@ -40,8 +40,8 @@ public class Matrix4 {
         return result;
     }
 
-    public static float[] multiply(float[] left, float[] right) {
-        float[] result = new float[16];
+    public static float[] multiply(float left[], float right[]) {
+        float result[] = new float[16];
 
         for(int column = 0; column < 4; column++) {
             for(int row = 0; row < 4; row++) {
@@ -57,7 +57,7 @@ public class Matrix4 {
     }
 
     private static float[] identity() {
-        float[] result = new float[16];
+        float result[] = new float[16];
         result[0] = 1.0f;
         result[5] = 1.0f;
         result[10] = 1.0f;
@@ -70,7 +70,7 @@ public class Matrix4 {
         return new float[] {x / length, y / length, z / length};
     }
 
-    private static float[] normalize(float[] vector) {
+    private static float[] normalize(float vector[]) {
         return normalize(vector[0], vector[1], vector[2]);
     }
 
@@ -82,7 +82,7 @@ public class Matrix4 {
         };
     }
 
-    private static float dot(float[] vector, float x, float y, float z) {
+    private static float dot(float vector[], float x, float y, float z) {
         return vector[0] * x + vector[1] * y + vector[2] * z;
     }
 }
