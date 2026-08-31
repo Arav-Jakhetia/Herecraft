@@ -45,11 +45,16 @@ public class Chunk {
 
     public boolean isSolidBlockLocal(int x, int y, int z) {
         if(x < 0 || x >= SIZE || z < 0 || z >= SIZE) {
+            if(world == null) {
+                return false;
+            }
             int worldX = chunkX * SIZE + x;
             int worldZ = chunkZ * SIZE + z;
             return world.isSolidBlock(worldX, y, worldZ);
         }
-        if(y < 0 || y >= SIZE) return false;
+        if(y < 0 || y >= SIZE) {
+            return false;
+        }
 
         return blocks[x][y][z].isSolid();
     }
@@ -108,16 +113,19 @@ public class Chunk {
     }
 
     private boolean isAir(int x, int y, int z) {
-        if(x < 0 || x >= SIZE || y < 0 || y >= SIZE || z < 0 || z >= SIZE) {
-            return true;
-        }
-        return !blocks[x][y][z].isSolid();
+        return !isSolidBlockLocal(x, y, z);
     }
 
     private void addFace(List<Float> vertices, Block block, int x, int y, int z, Face face) {
         float corners[][] = face.corners;
         float uvs[][] = face.uvs;
         int order[] = {0, 1, 2, 2, 3, 0};
+
+        int textureLayer = switch (face) {
+            case TOP -> block.getTopTextureLayer();
+            case BOTTOM -> block.getBottomTextureLayer();
+            default -> block.getSideTextureLayer();
+        };
 
         for(int index : order) {
             float corner[] = corners[index];
@@ -131,7 +139,7 @@ public class Chunk {
             vertices.add(uv[1]);
 
             vertices.add(face.shade);
-            vertices.add((float)block.getTextureLayer());
+            vertices.add((float)textureLayer);
         }
     }
 
@@ -141,47 +149,81 @@ public class Chunk {
                 {0.0f, 1.0f, 0.0f},
                 {1.0f, 1.0f, 0.0f},
                 {1.0f, 0.0f, 0.0f}
+        }, new float[][] {
+                {0.0f, 1.0f},
+                {0.0f, 0.0f},
+                {1.0f, 0.0f},
+                {1.0f, 1.0f}
         }, 0.70f),
+
         FRONT(new float[][] {
                 {0.0f, 0.0f, 1.0f},
                 {1.0f, 0.0f, 1.0f},
                 {1.0f, 1.0f, 1.0f},
                 {0.0f, 1.0f, 1.0f}
+        }, new float[][] {
+                {0.0f, 1.0f},
+                {1.0f, 1.0f},
+                {1.0f, 0.0f},
+                {0.0f, 0.0f}
         }, 0.85f),
+
         LEFT(new float[][] {
                 {0.0f, 0.0f, 0.0f},
                 {0.0f, 0.0f, 1.0f},
                 {0.0f, 1.0f, 1.0f},
                 {0.0f, 1.0f, 0.0f}
+        }, new float[][] {
+                {0.0f, 1.0f},
+                {1.0f, 1.0f},
+                {1.0f, 0.0f},
+                {0.0f, 0.0f}
         }, 0.75f),
+
         RIGHT(new float[][] {
                 {1.0f, 0.0f, 0.0f},
                 {1.0f, 1.0f, 0.0f},
                 {1.0f, 1.0f, 1.0f},
                 {1.0f, 0.0f, 1.0f}
+        }, new float[][] {
+                {0.0f, 1.0f},
+                {0.0f, 0.0f},
+                {1.0f, 0.0f},
+                {1.0f, 1.0f}
         }, 0.95f),
+
         BOTTOM(new float[][] {
                 {0.0f, 0.0f, 0.0f},
                 {1.0f, 0.0f, 0.0f},
                 {1.0f, 0.0f, 1.0f},
                 {0.0f, 0.0f, 1.0f}
+        }, new float[][] {
+                {0.0f, 0.0f},
+                {1.0f, 0.0f},
+                {1.0f, 1.0f},
+                {0.0f, 1.0f}
         }, 0.55f),
+
         TOP(new float[][] {
                 {0.0f, 1.0f, 0.0f},
                 {0.0f, 1.0f, 1.0f},
                 {1.0f, 1.0f, 1.0f},
                 {1.0f, 1.0f, 0.0f}
-        }, 1.0f);
-
-        private final float shade, corners[][], uvs[][] = {
+        }, new float[][] {
                 {0.0f, 0.0f},
                 {0.0f, 1.0f},
                 {1.0f, 1.0f},
                 {1.0f, 0.0f}
-        };
+        }, 1.0f);
 
-        Face(float corners[][], float shade) {
+        private final float shade;
+        private final float[][] corners;
+        private final float[][] uvs;
+
+
+        Face(float[][] corners, float[][] uvs, float shade) {
             this.corners = corners;
+            this.uvs = uvs;
             this.shade = shade;
         }
     }

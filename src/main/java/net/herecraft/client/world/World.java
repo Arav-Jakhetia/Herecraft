@@ -1,8 +1,9 @@
 package net.herecraft.client.world;
 
 import net.herecraft.client.block.Block;
-import net.herecraft.client.render.Camera;
-import net.herecraft.client.render.ChunkRenderer;
+import net.herecraft.client.render.overlay.ChunkRenderer;
+import org.lwjgl.vulkan.VkDevice;
+import org.lwjgl.vulkan.VkPhysicalDevice;
 
 import java.util.*;
 
@@ -10,6 +11,13 @@ public class World {
     private static final int RENDER_DISTANCE = 6;
     private final Map<ChunkPos, Chunk> chunks = new HashMap<>();
     private final Map<ChunkPos, ChunkRenderer> renderers = new HashMap<>();
+    private VkDevice device;
+    private VkPhysicalDevice physicalDevice;
+
+    public void initVulkan(VkDevice device, VkPhysicalDevice physicalDevice) {
+        this.device = device;
+        this.physicalDevice = physicalDevice;
+    }
 
     public void update(float playerX, float playerZ) {
         int playerChunkX = Math.floorDiv((int)Math.floor(playerX), Chunk.SIZE);
@@ -30,7 +38,7 @@ public class World {
 
         for(ChunkPos pos : shouldBeLoaded) {
             if(!renderers.containsKey(pos)) {
-                renderers.put(pos, new ChunkRenderer(chunks.get(pos)));
+                renderers.put(pos, new ChunkRenderer(device, physicalDevice, chunks.get(pos)));
             }
         }
 
@@ -39,7 +47,9 @@ public class World {
             Map.Entry<ChunkPos, Chunk> entry = iterator.next();
             if(!shouldBeLoaded.contains(entry.getKey())) {
                 ChunkRenderer renderer = renderers.remove(entry.getKey());
-                if(renderer != null) renderer.destroy();
+                if(renderer != null) {
+                    renderer.destroy();
+                }
                 iterator.remove();
             }
         }
@@ -89,7 +99,16 @@ public class World {
             oldRenderer.destroy();
         }
 
-        renderers.put(pos, new ChunkRenderer(chunk));
+        renderers.put(pos, new ChunkRenderer(device, physicalDevice, chunk));
+    }
+
+    public int getGroundHeight(int worldX, int worldZ) {
+        for(int y = Chunk.SIZE - 1; y >= 0; y--) {
+            if(isSolidBlock(worldX, y, worldZ)) {
+                return y + 1;
+            }
+        }
+        return 0;
     }
 
     public boolean isSolidBlock(int worldX, int worldY, int worldZ) {
@@ -107,10 +126,8 @@ public class World {
         return chunk.isSolidBlockLocal(localX, worldY, localZ);
     }
 
-    public void render(Camera camera, float aspectRatio) {
-        for(ChunkRenderer renderer : renderers.values()) {
-            renderer.render(camera, aspectRatio);
-        }
+    public Collection<ChunkRenderer> getChunkRenderers() {
+        return renderers.values();
     }
 
     public void destroy() {

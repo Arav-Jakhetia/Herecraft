@@ -39,6 +39,14 @@ public class Mouse {
         mouseX += currentMouseX - lastMouseX;
         mouseY += currentMouseY - lastMouseY;
 
+        double maxMouseY = 890.0;
+        if(mouseY > maxMouseY) {
+            mouseY = maxMouseY;
+        }
+        if(mouseY < -maxMouseY) {
+            mouseY = -maxMouseY;
+        }
+
         lastMouseX = currentMouseX;
         lastMouseY = currentMouseY;
     }
