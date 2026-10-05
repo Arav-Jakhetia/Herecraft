@@ -1,6 +1,6 @@
 # Herecraft
 
-A Minecraft-inspired voxel sandbox built from scratch in Java using Vulkan through LWJGL.
+A `Minecraft` inspired voxel sandbox built from scratch in Java using Vulkan through LWJGL.
 
 Herecraft is a learning-focused rendering project that explores how a block-based world can be created without using an existing game engine. It includes Vulkan rendering, chunk-based terrain, textured blocks, first-person movement, collision, raycasting, and block interaction.
 
@@ -24,28 +24,25 @@ Herecraft is a learning-focused rendering project that explores how a block-base
 - Block-selection outline
 - Basic directional face shading
 
+## Blocks & Items
+
+- Air
+- Grass Block
+- Stone
+- Cobblestone
+- Dirt
+- Oak Planks
+
+## Dimensions
+
+- Overworld
+
 ## Controls
 
 | Key | Action |
 | --- | --- |
 | `W` `A` `S` `D` | Move |
 | `Space` | Jump |
-| Left Mouse Button | Break selected block |
-| Right Mouse Button | Place a stone block |
+| `Left Mouse Button` | Break selected block |
+| `Right Mouse Button` | Place selected block |
 | `Escape` | Close the game |
-
-## Project Structure
-
-```text
-src/main/java/net/herecraft/
-├── Herecraft.java              # Application setup and game loop
-├── main/Main.java              # Entry point
-└── client/
-    ├── block/                  # Block definitions and texture layers
-    ├── input/                  # Keyboard and mouse input
-    ├── player/                 # Player movement and collisions
-    ├── render/                 # Vulkan renderer, buffers, pipelines, shaders
-    └── world/                  # World, chunks, mesh generation, raycasting
-
-src/main/resources/assets/herecraft/
-└── textures/                   # Block and game textures
