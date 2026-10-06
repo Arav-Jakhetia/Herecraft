@@ -6,43 +6,39 @@ Herecraft is a learning-focused rendering project that explores how a block-base
 
 > This project is independent and is not affiliated with, endorsed by, or associated with Mojang Studios or Microsoft.
 
-## Features
+## Build 1
 
-- Vulkan renderer built with LWJGL
-- GLFW window and input handling
-- Chunk-based voxel world (`16 × 16 × 16` blocks per chunk)
-- Automatic chunk loading around the player
-- Face culling between adjacent solid blocks
-- GPU texture-array rendering with nearest-neighbour filtering
-- Grass, dirt, stone, and air blocks
-- Per-face block textures
-- First-person mouse look
-- WASD movement, jumping, gravity, and collision detection
-- Raycasting for block selection
-- Left-click block breaking
-- Right-click block placing
-- Block-selection outline
-- Basic directional face shading
+- Additions
+  - Blocks
+    - Air
+    - Grass Block
+    - Stone
+  - World generation
+    - Chunk system (`16 x 16 x 16` blocks per chunk)
+    - Face culling between adjacent solid blocks
+    - Block-selection outline
+    - Automatic chunk loading around the player
+  - General
+    - GPU texture-array rendering with nearest-neighbour filtering
+    - First-person mouse look
+    - Raycasting for block selection
+    - Left-click block breaking
+    - Right-click block placing
 
-## Blocks & Items
+## Build 2
 
-- Air
-- Grass Block
-- Stone
-- Cobblestone
-- Dirt
-- Oak Planks
+- Additions
+  - Blocks
+    - Cobblestone
+    - Dirt
+    - Oak Planks
+  - General
+    - Added the grass block side overlay and colormap.
+    - Created the GUI for Main Menu and World Selection Menu.
+- Changes
+  - World generation
+    - Bumps now appear, making hills.
 
-## Dimensions
+## Under Development
 
-- Overworld
-
-## Controls
-
-| Key | Action |
-| --- | --- |
-| `W` `A` `S` `D` | Move |
-| `Space` | Jump |
-| `Left Mouse Button` | Break selected block |
-| `Right Mouse Button` | Place selected block |
-| `Escape` | Close the game |
+- Particle System
