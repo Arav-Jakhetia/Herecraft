@@ -1,6 +1,7 @@
 package net.herecraft.client.world;
 
 import net.herecraft.client.block.Block;
+import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +19,7 @@ public class Chunk {
         this.chunkX = chunkX;
         this.chunkZ = chunkZ;
         this.world = world;
-        generateBasicTerrain();
+        generateTerrain();
     }
 
     public int getChunkX() {
@@ -87,7 +88,7 @@ public class Chunk {
         return mesh;
     }
 
-    private void generateBasicTerrain() {
+    private void generateTerrain() {
         for(int x = 0; x < SIZE; x++) {
             for(int y = 0; y < SIZE; y++) {
                 for(int z = 0; z < SIZE; z++) {
@@ -98,18 +99,51 @@ public class Chunk {
 
         for(int x = 0; x < SIZE; x++) {
             for(int z = 0; z < SIZE; z++) {
-                blocks[x][0][z] = Block.stone();
-                blocks[x][1][z] = Block.stone();
-                blocks[x][2][z] = Block.stone();
-                blocks[x][3][z] = Block.stone();
-                blocks[x][4][z] = Block.stone();
+                int worldX = chunkX * SIZE + x;
+                int worldZ = chunkZ * SIZE + z;
 
-                blocks[x][5][z] = Block.dirt();
-                blocks[x][6][z] = Block.dirt();
+                int surfaceY = 7 + (int)Math.round(valueNoise(worldX, worldZ, 8) * 5.0);
+                surfaceY = Math.max(2, Math.min(SIZE - 1, surfaceY));
 
-                blocks[x][7][z] = Block.grass();
+                for(int y = 0; y <= surfaceY; y++) {
+                    if(y == surfaceY) {
+                        blocks[x][y][z] = Block.grass();
+                    } else if(y >= surfaceY - 2) {
+                        blocks[x][y][z] = Block.dirt();
+                    } else {
+                        blocks[x][y][z] = Block.stone();
+                    }
+                }
             }
         }
+    }
+
+    private double valueNoise(int worldX, int worldZ, int scale) {
+        int cellX = Math.floorDiv(worldX, scale);
+        int cellZ = Math.floorDiv(worldZ, scale);
+
+        double localX = (double)Math.floorMod(worldX, scale) / scale;
+        double localZ = (double)Math.floorMod(worldZ, scale) / scale;
+
+        localX = localX * localX * (3.0 - 2.0 * localX);
+        localZ = localZ * localZ * (3.0 - 2.0 * localZ);
+
+        double top = mix(heightPoint(cellX, cellZ), heightPoint(cellX + 1, cellZ), localX);
+        double bottom = mix(heightPoint(cellX, cellZ + 1), heightPoint(cellX + 1, cellZ + 1), localX);
+
+        return mix(top, bottom, localZ);
+    }
+
+    private double heightPoint(int x, int z) {
+        long value = x * 341873128712L + z * 132897987541L;
+        value = (value ^ (value >> 15)) * 1274126177L;
+        value ^= value >> 16;
+
+        return ((value & 0x7fffffffL) / (double)0x7fffffffL) * 2.0 - 1.0;
+    }
+
+    private double mix(double a, double b, double amount) {
+        return a + (b - a) * amount;
     }
 
     private boolean isAir(int x, int y, int z) {
@@ -127,6 +161,10 @@ public class Chunk {
             default -> block.getSideTextureLayer();
         };
 
+        Vector3f tint = block.isGrass()
+                ? world.getGrassTint(chunkX * SIZE + x, chunkZ * SIZE + z)
+                : new  Vector3f(1.0f, 1.0f, 1.0f);
+
         for(int index : order) {
             float corner[] = corners[index];
             float uv[] = uvs[index];
@@ -140,6 +178,10 @@ public class Chunk {
 
             vertices.add(face.shade);
             vertices.add((float)textureLayer);
+
+            vertices.add(tint.x);
+            vertices.add(tint.y);
+            vertices.add(tint.z);
         }
     }
 

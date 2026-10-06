@@ -52,16 +52,19 @@ public class ChunkShaders {
         layout(location = 1) in vec2 inTexCoord;
         layout(location = 2) in float inShade;
         layout(location = 3) in float inTextureLayer;
+        layout(location = 4) in vec3 inTint;
 
         layout(location = 0) out vec2 fragTexCoord;
         layout(location = 1) out float fragShade;
         layout(location = 2) out float fragTextureLayer;
+        layout(location = 3) out vec3 fragTint;
 
         void main() {
             gl_Position = ubo.mvp * vec4(inPosition + push.chunkOffset, 1.0);
             fragTexCoord = inTexCoord;
             fragShade = inShade;
             fragTextureLayer = inTextureLayer;
+            fragTint = inTint;
         }
         """;
 
@@ -73,11 +76,21 @@ public class ChunkShaders {
         layout(location = 0) in vec2 fragTexCoord;
         layout(location = 1) in float fragShade;
         layout(location = 2) in float fragTextureLayer;
+        layout(location = 3) in vec3 fragTint;
 
         layout(location = 0) out vec4 outColor;
 
         void main() {
             vec4 texColor = texture(texSampler, vec3(fragTexCoord, fragTextureLayer));
+            
+            if(int(fragTextureLayer) == 1) {
+                vec4 overlay = texture(texSampler, vec3(fragTexCoord, 6.0));
+                overlay.rgb *= fragTint;
+                texColor.rgb = mix(texColor.rgb, overlay.rgb, overlay.a);
+            } else if(int(fragTextureLayer) == 0) {
+                texColor.rgb *= fragTint;
+            }
+            
             outColor = vec4(texColor.rgb * fragShade, texColor.a);
         }
         """;

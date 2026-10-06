@@ -6,8 +6,6 @@ import net.herecraft.client.input.Mouse;
 import net.herecraft.client.player.Player;
 import net.herecraft.client.render.*;
 import net.herecraft.client.render.RenderContext;
-import net.herecraft.client.render.overlay.BlockHighlightRenderer;
-import net.herecraft.client.render.overlay.CrosshairRenderer;
 import net.herecraft.client.world.BlockHit;
 import net.herecraft.client.world.Raycast;
 import net.herecraft.client.world.World;
@@ -15,6 +13,10 @@ import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;
+
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
 
 import static net.herecraft.client.input.Mouse.mouseX;
 import static net.herecraft.client.input.Mouse.mouseY;
@@ -27,10 +29,13 @@ public class Herecraft {
     private static Player player;
     private static float lastTime;
     private static float aspectRatio;
-    private static BlockHighlightRenderer blockHighlightRenderer;
-    private static CrosshairRenderer crosshairRenderer;
-
     private static RenderContext renderContext;
+    private static Block selectedBlock = Block.dirt();
+    private final java.io.File worldFolder;
+
+    public Herecraft(java.io.File worldFolder) {
+        this.worldFolder = worldFolder;
+    }
 
     public void run() {
         init();
@@ -65,7 +70,7 @@ public class Herecraft {
 
         world = new World();
         world.initVulkan(renderContext.getDevice(), renderContext.getPhysicalDevice());
-        world.update(8, 24);
+        world.update(8, 24, 0.0f);
 
         int spawnY = world.getGroundHeight(8, 24) + 1;
         camera = new Camera(8, spawnY, 24);
@@ -95,10 +100,23 @@ public class Herecraft {
             }
 
             Keyboard.update();
+            if(Keyboard.isDown(GLFW_KEY_1)) {
+                selectedBlock = Block.dirt();
+            }
+            if(Keyboard.isDown(GLFW_KEY_2)) {
+                selectedBlock = Block.stone();
+            }
+            if(Keyboard.isDown(GLFW_KEY_3)) {
+                selectedBlock = Block.cobblestone();
+            }
+            if(Keyboard.isDown(GLFW_KEY_4)) {
+                selectedBlock = Block.oak_planks();
+            }
+
             player.update(deltaTime, world);
 
             Vector3f position = camera.getPosition();
-            world.update(position.x, position.z);
+            world.update(position.x, position.z, deltaTime);
 
             BlockHit hit = Raycast.cast(world, position, camera.getForward(), 6.0f);
 
@@ -107,7 +125,9 @@ public class Herecraft {
                     world.breakBlock(hit.x, hit.y, hit.z);
                 }
                 if(Mouse.consumeRightClick()) {
-                    world.placeBlock(hit.faceX, hit.faceY, hit.faceZ, Block.stone());
+                    if(!player.intersectsBlock(hit.faceX,  hit.faceY, hit.faceZ)) {
+                        world.placeBlock(hit.faceX, hit.faceY, hit.faceZ, selectedBlock);
+                    }
                 }
             }
 
@@ -129,6 +149,17 @@ public class Herecraft {
             }
 
             renderContext.drawFrame(mvpArray, highlightMvpArray);
+
+            java.io.File preview = new java.io.File(worldFolder, "icon.png");
+            if(!preview.exists()) {
+                try {
+                    java.awt.Rectangle screen = new java.awt.Rectangle(java.awt.Toolkit.getDefaultToolkit().getScreenSize());
+                    BufferedImage screenshot = new Robot().createScreenCapture(screen);
+                    ImageIO.write(screenshot, "png", preview);
+                } catch(Exception exception) {
+                    exception.printStackTrace();
+                }
+            }
         }
     }
 

@@ -113,9 +113,12 @@ public class RenderContext {
         textureArray = new TextureArray(logicalDevice.getDevice(), physicalDevice, commandPool.getCommandPool(), logicalDevice.getGraphicsQueue());
         textureArray.create(new String[] {
                 "/assets/herecraft/textures/block/grass_block_top.png",
+                "/assets/herecraft/textures/block/grass_block_side.png",
                 "/assets/herecraft/textures/block/dirt.png",
                 "/assets/herecraft/textures/block/stone.png",
-                "/assets/herecraft/textures/block/grass_block_side.png"
+                "/assets/herecraft/textures/block/cobblestone.png",
+                "/assets/herecraft/textures/block/oak_planks.png",
+                "/assets/herecraft/textures/block/grass_block_side_overlay.png"
         });
 
         syncObjects = new SyncObjects();
@@ -142,7 +145,7 @@ public class RenderContext {
                 overlayShaders.getFragmentModule()
         );
 
-        crosshairRenderer = new CrosshairRenderer(logicalDevice.getDevice(), physicalDevice);
+        crosshairRenderer = new CrosshairRenderer(logicalDevice.getDevice(), physicalDevice, (float)windowWidth / windowHeight);
 
         highlightShaders = new HighlightShaders(logicalDevice.getDevice());
         highlightShaders.compile();

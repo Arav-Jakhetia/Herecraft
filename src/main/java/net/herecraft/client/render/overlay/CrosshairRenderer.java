@@ -10,22 +10,16 @@ public class CrosshairRenderer {
     private final GpuBuffer vertexBuffer;
     private final int vertexCount;
 
-    public CrosshairRenderer(VkDevice device, VkPhysicalDevice physicalDevice) {
-        float size = 0.015f;
-        float gap = 0.004f;
+    public CrosshairRenderer(VkDevice device, VkPhysicalDevice physicalDevice, float aspectRatio) {
+        float verticalSize = 0.018f;
+        float horizontalSize = verticalSize / aspectRatio;
 
         float[] vertices = {
-                -size, 0.0f,   0, 0, 0,
-                -gap, 0.0f,    0, 0, 0,
+                -horizontalSize, 0.0f,   1.0f, 1.0f, 1.0f,
+                horizontalSize, 0.0f,    1.0f, 1.0f, 1.0f,
 
-                gap, 0.0f,     0, 0, 0,
-                size, 0.0f,    0, 0, 0,
-
-                0.0f, -size,   0, 0, 0,
-                0.0f, -gap,    0, 0, 0,
-
-                0.0f, gap,     0, 0, 0,
-                0.0f, size,    0, 0, 0
+                0.0f, -verticalSize,   1.0f, 1.0f, 1.0f,
+                0.0f, verticalSize,    1.0f, 1.0f, 1.0f,
         };
 
         vertexCount = vertices.length / 5;

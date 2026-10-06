@@ -18,7 +18,7 @@ public class Player {
     private static final float MAX_FALL_SPEED = 40.0f;
 
     private final Camera camera;
-    private final Vector3f position; // feet position, center of the box on x/z
+    private final Vector3f position;
     private final Vector3f velocity;
     private boolean onGround;
 
@@ -93,7 +93,6 @@ public class Player {
         else position.z += amount;
 
         if(collides(world)) {
-            // step back out of the block on just this axis
             if(axis == 0) position.x -= amount;
             else if(axis == 1) position.y -= amount;
             else position.z -= amount;
@@ -137,6 +136,19 @@ public class Player {
         }
 
         return false;
+    }
+    
+    public boolean intersectsBlock(int blockX, int blockY, int blockZ) {
+        float playerMinX = position.x - WIDTH / 2.0f;
+        float playerMaxX = position.x + WIDTH / 2.0f;
+        float playerMinY = position.y;
+        float playerMaxY = position.y + HEIGHT;
+        float playerMinZ = position.z - WIDTH / 2.0f;
+        float playerMaxZ = position.z + WIDTH / 2.0f;
+
+        return blockX + 1.0f > playerMinX && blockX < playerMaxX
+                && blockY + 1.0f > playerMinY && blockY < playerMaxY
+                && blockZ + 1.0f > playerMinZ && blockZ < playerMaxZ;
     }
 
     private void updateCameraPosition() {

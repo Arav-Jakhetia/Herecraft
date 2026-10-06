@@ -1,57 +1,57 @@
 package net.herecraft.client.block;
 
 public class Block {
-    public static final int GRASS_BLOCK_TOP_TEXTURE = 0;
-    public static final int DIRT_TEXTURE = 1;
-    public static final int STONE_TEXTURE = 2;
-    public static final int GRASS_BLOCK_SIDE_TEXTURE = 3;
+    private final BlockType type;
 
-    private final int topTextureLayer;
-    private final int sideTextureLayer;
-    private final int bottomTextureLayer;
-
-    private final boolean solid;
-
-    public Block(boolean solid, int textureLayer) {
-        this(solid, textureLayer, textureLayer, textureLayer);
-    }
-
-    public Block(boolean solid, int topTextureLayer, int sideTextureLayer, int bottomTextureLayer) {
-        this.solid = solid;
-        this.topTextureLayer = topTextureLayer;
-        this.sideTextureLayer = sideTextureLayer;
-        this.bottomTextureLayer = bottomTextureLayer;
-    }
-
-    public static Block grass() {
-        return new Block(true, GRASS_BLOCK_TOP_TEXTURE, GRASS_BLOCK_SIDE_TEXTURE, DIRT_TEXTURE);
-    }
-
-    public boolean isSolid() {
-        return solid;
+    public Block(BlockType type) {
+        this.type = type;
     }
 
     public static Block air() {
-        return new Block(false, -1);
+        return new Block(BlockType.AIR);
+    }
+
+    public static Block grass() {
+        return new Block(BlockType.GRASS);
     }
 
     public static Block dirt() {
-        return new Block(true, DIRT_TEXTURE);
+        return new Block(BlockType.DIRT);
     }
 
     public static Block stone() {
-        return new Block(true, STONE_TEXTURE);
+        return new Block(BlockType.STONE);
+    }
+
+    public static Block cobblestone() {
+        return new Block(BlockType.COBBLESTONE);
+    }
+
+    public static Block oak_planks() {
+        return new Block(BlockType.OAK_PLANKS);
+    }
+
+    public boolean isGrass() {
+        return type == BlockType.GRASS;
+    }
+
+    public boolean isDirt() {
+        return type == BlockType.DIRT;
+    }
+
+    public boolean isSolid() {
+        return type.isSolid();
     }
 
     public int getTopTextureLayer() {
-        return topTextureLayer;
+        return type.getTopTextureLayer();
     }
 
     public int getSideTextureLayer() {
-        return sideTextureLayer;
+        return type.getSideTextureLayer();
     }
 
     public int getBottomTextureLayer() {
-        return bottomTextureLayer;
+        return type.getBottomTextureLayer();
     }
 }

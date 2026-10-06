@@ -33,10 +33,10 @@ public class ChunkPipeline {
 
             VkVertexInputBindingDescription.Buffer bindingDescription = VkVertexInputBindingDescription.calloc(1, stack);
             bindingDescription.binding(0);
-            bindingDescription.stride(7 * Float.BYTES);
+            bindingDescription.stride(10 * Float.BYTES);
             bindingDescription.inputRate(VK_VERTEX_INPUT_RATE_VERTEX);
 
-            VkVertexInputAttributeDescription.Buffer attributeDescriptions = VkVertexInputAttributeDescription.calloc(4, stack);
+            VkVertexInputAttributeDescription.Buffer attributeDescriptions = VkVertexInputAttributeDescription.calloc(5, stack);
 
             attributeDescriptions.get(0)
                     .binding(0)
@@ -61,6 +61,12 @@ public class ChunkPipeline {
                     .location(3)
                     .format(VK_FORMAT_R32_SFLOAT) // texture layer
                     .offset(6 * Float.BYTES);
+
+            attributeDescriptions.get(4)
+                    .binding(0)
+                    .location(4)
+                    .format(VK_FORMAT_R32G32B32_SFLOAT)
+                    .offset(7 * Float.BYTES);
 
             VkPipelineVertexInputStateCreateInfo vertexInputInfo = VkPipelineVertexInputStateCreateInfo.calloc(stack);
             vertexInputInfo.sType(VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO);
