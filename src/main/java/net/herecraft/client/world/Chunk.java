@@ -1,6 +1,6 @@
 package net.herecraft.client.world;
 
-import net.herecraft.client.block.Block;
+import net.herecraft.world.level.block.Block;
 import org.joml.Vector3f;
 
 import java.util.ArrayList;

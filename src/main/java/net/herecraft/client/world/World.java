@@ -1,6 +1,6 @@
 package net.herecraft.client.world;
 
-import net.herecraft.client.block.Block;
+import net.herecraft.world.level.block.Block;
 import net.herecraft.client.render.overlay.ChunkRenderer;
 import org.joml.Vector3f;
 import org.lwjgl.vulkan.VkDevice;

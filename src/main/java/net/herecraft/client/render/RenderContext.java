@@ -9,6 +9,7 @@ import net.herecraft.client.render.device.QueueFamilyIndices;
 import net.herecraft.client.render.overlay.BlockHighlightRenderer;
 import net.herecraft.client.render.overlay.ChunkRenderer;
 import net.herecraft.client.render.overlay.CrosshairRenderer;
+import net.herecraft.client.render.overlay.ParticleRenderer;
 import net.herecraft.client.render.pipeline.*;
 import net.herecraft.client.render.shader.ChunkShaders;
 import net.herecraft.client.render.shader.HighlightShaders;
@@ -20,6 +21,7 @@ import net.herecraft.client.render.sync.SyncObjects;
 import net.herecraft.client.render.texture.TextureArray;
 import net.herecraft.client.world.Chunk;
 import net.herecraft.client.world.World;
+import org.joml.Vector3f;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.glfw.GLFWVulkan;
 import org.lwjgl.system.MemoryStack;
@@ -30,6 +32,7 @@ import java.nio.IntBuffer;
 import java.nio.LongBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Vector;
 
 import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.vulkan.EXTDebugUtils.*;
@@ -68,6 +71,7 @@ public class RenderContext {
     private HighlightShaders highlightShaders;
     private HighlightPipeline highlightPipeline;
     private BlockHighlightRenderer blockHighlightRenderer;
+    private ParticleRenderer particleRenderer;
 
     public void init(long window, int windowWidth, int windowHeight) {
         createInstance();
@@ -120,6 +124,8 @@ public class RenderContext {
                 "/assets/herecraft/textures/block/oak_planks.png",
                 "/assets/herecraft/textures/block/grass_block_side_overlay.png"
         });
+
+        particleRenderer = new ParticleRenderer(logicalDevice.getDevice(), physicalDevice);
 
         syncObjects = new SyncObjects();
         syncObjects.create(logicalDevice.getDevice());
@@ -290,12 +296,13 @@ public class RenderContext {
         }
     }
 
-    public void drawFrame(float[] mvpMatrix, float[] highlightMvp) {
+    public void drawFrame(float[] mvpMatrix, float[] highlightMvp, Vector3f cameraPosition, Vector3f cameraRight, Vector3f cameraUp, Vector3f cameraForward) {
         VkDevice device = logicalDevice.getDevice();
 
         try(MemoryStack stack = stackPush()) {
             long fence = syncObjects.getInFlightFence(currentFrame);
             vkWaitForFences(device, fence, true, Long.MAX_VALUE);
+            particleRenderer.update(world.getParticles(), currentFrame, cameraPosition, cameraRight, cameraUp, cameraForward, swapChain.getExtent().height());
 
             IntBuffer imageIndexBuffer = stack.mallocInt(1);
             int acquireResult = KHRSwapchain.vkAcquireNextImageKHR(
@@ -383,6 +390,18 @@ public class RenderContext {
                     VK_SHADER_STAGE_VERTEX_BIT, 0, pushConstant);
 
             vkCmdDraw(commandBuffer, chunkRenderer.getVertexCount(), 1, 0, 0);
+        }
+
+        int particleVertexCount = particleRenderer.getVertexCount(frameIndex);
+
+        if(particleVertexCount > 0) {
+            LongBuffer particleBuffers = stack.longs(particleRenderer.getBuffer(frameIndex).getBuffer());
+
+            vkCmdBindVertexBuffers(commandBuffer, 0, particleBuffers, stack.longs(0));
+
+            vkCmdPushConstants(commandBuffer, graphicsPipeline.getPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, stack.floats(0.0f, 0.0f, 0.0f));
+
+            vkCmdDraw(commandBuffer, particleVertexCount, 1, 0, 0);
         }
 
         vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, overlayPipeline.getPipeline());
@@ -477,6 +496,7 @@ public class RenderContext {
         triangleShaders.destroy();
         renderPass.destroy();
         swapChain.destroy();
+        particleRenderer.destroy();
         logicalDevice.destroy();
         if(ENABLE_VALIDATION) {
             vkDestroyDebugUtilsMessengerEXT(instance, debugMessenger, null);

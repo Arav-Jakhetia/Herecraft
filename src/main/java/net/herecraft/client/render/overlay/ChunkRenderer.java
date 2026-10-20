@@ -19,7 +19,7 @@ public class ChunkRenderer {
         this.chunkZ = chunk.getChunkZ();
 
         float[] meshData = chunk.buildMesh();
-        vertexCount = meshData.length / 7;
+        vertexCount = meshData.length / 10;
 
         vertexBuffer = new GpuBuffer(device);
 

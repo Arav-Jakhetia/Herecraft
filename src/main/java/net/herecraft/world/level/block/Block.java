@@ -1,4 +1,4 @@
-package net.herecraft.client.block;
+package net.herecraft.world.level.block;
 
 public class Block {
     private final BlockType type;
