@@ -1,6 +1,5 @@
 package net.herecraft.main;
 
-import net.herecraft.Herecraft;
 import net.herecraft.world.level.block.Block;
 import net.herecraft.client.input.Keyboard;
 import net.herecraft.client.input.Mouse;
@@ -12,6 +11,7 @@ import net.herecraft.client.ui.WorldSelectMenu;
 import net.herecraft.client.world.BlockHit;
 import net.herecraft.client.world.Raycast;
 import net.herecraft.client.world.World;
+import net.herecraft.world.level.block.Blocks;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFWErrorCallback;
@@ -34,7 +34,7 @@ public class Main {
     private static float lastTime;
     private static float aspectRatio;
     private static RenderContext renderContext;
-    private static Block selectedBlock = Block.dirt();
+    private static Block selectedBlock = Blocks.DIRT;
     private final java.io.File worldFolder;
 
     public static void main(String args[]) {
@@ -116,16 +116,19 @@ public class Main {
 
             Keyboard.update();
             if(Keyboard.isDown(GLFW_KEY_1)) {
-                selectedBlock = Block.dirt();
+                selectedBlock = Blocks.DIRT;
             }
             if(Keyboard.isDown(GLFW_KEY_2)) {
-                selectedBlock = Block.stone();
+                selectedBlock = Blocks.STONE;
             }
             if(Keyboard.isDown(GLFW_KEY_3)) {
-                selectedBlock = Block.cobblestone();
+                selectedBlock = Blocks.COBBLESTONE;
             }
             if(Keyboard.isDown(GLFW_KEY_4)) {
-                selectedBlock = Block.oak_planks();
+                selectedBlock = Blocks.OAK_PLANKS;
+            }
+            if(Keyboard.isDown(GLFW_KEY_5)) {
+                selectedBlock = Blocks.OAK_SAPLING;
             }
 
             player.update(deltaTime, world);
@@ -149,17 +152,16 @@ public class Main {
             Matrix4f projection = new Matrix4f().perspective((float)Math.toRadians(70.0f), aspectRatio, 0.1f, 100.0f, true);
             projection.m11(projection.m11() * -1);
 
-            Matrix4f mvp = projection.mul(camera.getMatrix());
+            Matrix4f viewProjection = new Matrix4f(projection).mul(camera.getMatrix());
 
             float[] mvpArray = new float[16];
-            mvp.get(mvpArray);
+            viewProjection.get(mvpArray);
 
             float[] highlightMvpArray = null;
             if(hit != null) {
-                Matrix4f highlightMvp = new Matrix4f(projection)
-                        .mul(camera.getMatrix())
-                        .translate(hit.x, hit.y, hit.z);
-                highlightMvpArray = new float[16];
+                Matrix4f highlightMvp = new Matrix4f(viewProjection).translate(hit.x, hit.y, hit.z);
+
+                highlightMvpArray = new  float[16];
                 highlightMvp.get(highlightMvpArray);
             }
 

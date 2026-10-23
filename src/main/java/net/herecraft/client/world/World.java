@@ -2,6 +2,7 @@ package net.herecraft.client.world;
 
 import net.herecraft.world.level.block.Block;
 import net.herecraft.client.render.overlay.ChunkRenderer;
+import net.herecraft.world.level.block.Blocks;
 import org.joml.Vector3f;
 import org.lwjgl.vulkan.VkDevice;
 import org.lwjgl.vulkan.VkPhysicalDevice;
@@ -100,7 +101,7 @@ public class World {
 
             if(block.isGrass()) {
                 if(covered) {
-                    setBlock(worldX, localY, worldZ, Block.dirt());
+                    setBlock(worldX, localY, worldZ, Blocks.DIRT);
                 }
                 continue;
             }
@@ -116,7 +117,7 @@ public class World {
             boolean nearGrass = isGrassBlock(worldX - 1, localY, worldZ) ||isGrassBlock(worldX + 1, localY, worldZ) ||isGrassBlock(worldX, localY, worldZ - 1) ||isGrassBlock(worldX, localY, worldZ + 1);
 
             if(nearGrass) {
-                setBlock(worldX, localY, worldZ, Block.grass());
+                setBlock(worldX, localY, worldZ, Blocks.GRASS);
             }
         }
     }
@@ -156,7 +157,7 @@ public class World {
         }
 
         Block brokenBlock = chunk.getBlockLocal(localX, worldY, localZ);
-        if(!brokenBlock.isSolid()) {
+        if(brokenBlock == Blocks.AIR) {
             return;
         }
 
@@ -167,11 +168,36 @@ public class World {
             particles.add(new BlockParticle(brokenBlock, position, velocity, 0.12f + random.nextFloat() * 0.12f));
         }
 
-        setBlock(worldX, worldY, worldZ, Block.air());
+        setBlock(worldX, worldY, worldZ, Blocks.AIR);
     }
 
     public void placeBlock(int worldX, int worldY, int worldZ, Block block) {
+        if(block.isSapling()) {
+            Block support = getBlockAt(worldX, worldY - 1, worldZ);
+            if(!support.isGrass() && !support.isDirt()) {
+                return;
+            }
+        }
+
         setBlock(worldX, worldY, worldZ, block);
+    }
+
+    private Block getBlockAt(int worldX, int worldY, int worldZ) {
+        if(worldY < 0 || worldY >= Chunk.SIZE) {
+            return Blocks.AIR;
+        }
+
+        int chunkX = Math.floorDiv(worldX, Chunk.SIZE);
+        int chunkZ = Math.floorDiv(worldZ, Chunk.SIZE);
+        Chunk chunk = chunks.get(new ChunkPos(chunkX, chunkZ));
+
+        if(chunk == null) {
+            return Blocks.AIR;
+        }
+
+        int localX = Math.floorMod(worldX, Chunk.SIZE);
+        int localZ = Math.floorMod(worldZ, Chunk.SIZE);
+        return chunk.getBlockLocal(localX, worldY, localZ);
     }
 
     private void setBlock(int worldX, int worldY, int worldZ, Block block) {
@@ -235,6 +261,10 @@ public class World {
         int localZ = Math.floorMod(worldZ, Chunk.SIZE);
 
         return chunk.isSolidBlockLocal(localX, worldY, localZ);
+    }
+
+    public boolean isTargetableBlock(int worldX, int worldY, int worldZ) {
+        return getBlockAt(worldX, worldY, worldZ) != Blocks.AIR;
     }
 
     public Collection<ChunkRenderer> getChunkRenderers() {

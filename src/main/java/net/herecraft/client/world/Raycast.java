@@ -29,7 +29,7 @@ public class Raycast {
         float distance = 0.0f;
 
         while(distance <= maxDistance) {
-            if(world.isSolidBlock(x, y, z)) {
+            if(world.isTargetableBlock(x, y, z)) {
                 return new BlockHit(x, y, z, placeX, placeY, placeZ);
             }
 

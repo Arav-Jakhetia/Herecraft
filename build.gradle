@@ -23,10 +23,15 @@ dependencies {
     implementation "org.joml:joml:1.10.5"
     implementation "org.lwjgl:lwjgl-vulkan"
     implementation "org.lwjgl:lwjgl-shaderc"
+    implementation "org.jspecify:jspecify:1.0.1"
 
     runtimeOnly "org.lwjgl:lwjgl::$lwjglNatives"
     runtimeOnly "org.lwjgl:lwjgl-glfw::$lwjglNatives"
     runtimeOnly "org.lwjgl:lwjgl-opengl::$lwjglNatives"
     runtimeOnly "org.lwjgl:lwjgl-stb::$lwjglNatives"
     runtimeOnly "org.lwjgl:lwjgl-shaderc::$lwjglNatives"
+}
+
+application {
+    mainClass = 'net.herecraft.main.Main'
 }

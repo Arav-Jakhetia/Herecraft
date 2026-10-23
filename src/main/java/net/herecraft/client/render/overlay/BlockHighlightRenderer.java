@@ -11,7 +11,7 @@ public class BlockHighlightRenderer {
     private final int vertexCount;
 
     public BlockHighlightRenderer(VkDevice device, VkPhysicalDevice physicalDevice) {
-        float s = 0.002f;
+        float s = 0.0f;
 
         float[] vertices = {
                 -s, -s, -s,  1 + s, -s, -s,

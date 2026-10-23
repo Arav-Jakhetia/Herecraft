@@ -122,7 +122,8 @@ public class RenderContext {
                 "/assets/herecraft/textures/block/stone.png",
                 "/assets/herecraft/textures/block/cobblestone.png",
                 "/assets/herecraft/textures/block/oak_planks.png",
-                "/assets/herecraft/textures/block/grass_block_side_overlay.png"
+                "/assets/herecraft/textures/block/grass_block_side_overlay.png",
+                "/assets/herecraft/textures/block/oak_sapling.png"
         });
 
         particleRenderer = new ParticleRenderer(logicalDevice.getDevice(), physicalDevice);

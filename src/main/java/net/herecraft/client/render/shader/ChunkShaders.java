@@ -83,6 +83,8 @@ public class ChunkShaders {
         void main() {
             vec4 texColor = texture(texSampler, vec3(fragTexCoord, fragTextureLayer));
             
+            if(texColor.a < 0.1) discard;
+            
             if(int(fragTextureLayer) == 1) {
                 vec4 overlay = texture(texSampler, vec3(fragTexCoord, 6.0));
                 overlay.rgb *= fragTint;

@@ -1,6 +1,7 @@
 package net.herecraft.client.world;
 
 import net.herecraft.world.level.block.Block;
+import net.herecraft.world.level.block.Blocks;
 import org.joml.Vector3f;
 
 import java.util.ArrayList;
@@ -32,7 +33,7 @@ public class Chunk {
 
     public Block getBlockLocal(int x, int y, int z) {
         if(x < 0 || x >= SIZE || y < 0 || y >= SIZE || z < 0 || z >= SIZE) {
-            return Block.air();
+            return Blocks.AIR;
         }
         return blocks[x][y][z];
     }
@@ -57,7 +58,7 @@ public class Chunk {
             return false;
         }
 
-        return blocks[x][y][z].isSolid();
+        return blocks[x][y][z].hasCollision();
     }
 
     public float[] buildMesh() {
@@ -67,7 +68,13 @@ public class Chunk {
             for(int y = 0; y < SIZE; y++) {
                 for(int z = 0; z < SIZE; z++) {
                     Block block = blocks[x][y][z];
-                    if(!block.isSolid()) {
+
+                    if(block.isSapling()) {
+                        addSapling(vertices, x, y, z, block.getTopTextureLayer());
+                        continue;
+                    }
+
+                    if(!block.hasCollision()) {
                         continue;
                     }
 
@@ -92,7 +99,7 @@ public class Chunk {
         for(int x = 0; x < SIZE; x++) {
             for(int y = 0; y < SIZE; y++) {
                 for(int z = 0; z < SIZE; z++) {
-                    blocks[x][y][z] = Block.air();
+                    blocks[x][y][z] = Blocks.AIR;
                 }
             }
         }
@@ -107,11 +114,11 @@ public class Chunk {
 
                 for(int y = 0; y <= surfaceY; y++) {
                     if(y == surfaceY) {
-                        blocks[x][y][z] = Block.grass();
+                        blocks[x][y][z] = Blocks.GRASS;
                     } else if(y >= surfaceY - 2) {
-                        blocks[x][y][z] = Block.dirt();
+                        blocks[x][y][z] = Blocks.DIRT;
                     } else {
-                        blocks[x][y][z] = Block.stone();
+                        blocks[x][y][z] = Blocks.STONE;
                     }
                 }
             }
@@ -147,6 +154,11 @@ public class Chunk {
     }
 
     private boolean isAir(int x, int y, int z) {
+        if(x >= 0 && x < SIZE && y >= 0 && y < SIZE && z >= 0 && z < SIZE) {
+            Block block = blocks[x][y][z];
+            return !block.hasCollision() || block.isSapling();
+        }
+
         return !isSolidBlockLocal(x, y, z);
     }
 
@@ -182,6 +194,54 @@ public class Chunk {
             vertices.add(tint.x);
             vertices.add(tint.y);
             vertices.add(tint.z);
+        }
+    }
+
+    private void addSapling(List<Float> vertices, int x, int y, int z, int textureLayer) {
+        float[][] planeOne = {
+                {x + 0.15f, y, z + 0.15f},
+                {x + 0.85f, y, z + 0.85f},
+                {x + 0.85f, y + 1.0f, z + 0.85f},
+                {x + 0.15f, y + 1.0f, z + 0.15f}
+        };
+
+        float[][] planeTwo = {
+                {x + 0.85f, y, z + 0.15f},
+                {x + 0.15f, y, z + 0.85f},
+                {x + 0.15f, y + 1.0f, z + 0.85f},
+                {x + 0.85f, y + 1.0f, z + 0.15f}
+        };
+
+        float[][] uvs = {
+                {0.0f, 1.0f},
+                {1.0f, 1.0f},
+                {1.0f, 0.0f},
+                {0.0f, 0.0f}
+        };
+
+        int[][] orders = {
+                {0, 1, 2, 2, 3, 0},
+                {0, 3, 2, 2, 1, 0}
+        };
+
+        for(float[][] plane : new float[][][] {planeOne, planeTwo}) {
+            for(int[] order : orders) {
+                for(int index : order) {
+                    vertices.add(plane[index][0]);
+                    vertices.add(plane[index][1]);
+                    vertices.add(plane[index][2]);
+
+                    vertices.add(uvs[index][0]);
+                    vertices.add(uvs[index][1]);
+
+                    vertices.add(1.0f);
+                    vertices.add((float)textureLayer);
+
+                    vertices.add(1.0f);
+                    vertices.add(1.0f);
+                    vertices.add(1.0f);
+                }
+            }
         }
     }
 

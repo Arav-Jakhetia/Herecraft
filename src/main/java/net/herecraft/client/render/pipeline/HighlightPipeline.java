@@ -85,7 +85,7 @@ public class HighlightPipeline {
             depthStencil.sType(VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO);
             depthStencil.depthTestEnable(true);
             depthStencil.depthWriteEnable(false);
-            depthStencil.depthCompareOp(VK_COMPARE_OP_LESS);
+            depthStencil.depthCompareOp(VK_COMPARE_OP_LESS_OR_EQUAL);
             depthStencil.depthBoundsTestEnable(false);
             depthStencil.stencilTestEnable(false);
 

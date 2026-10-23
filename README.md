@@ -44,3 +44,12 @@ Herecraft is a learning-focused rendering project that explores how a block-base
 - Additions
   - General
     - Added block particle entities.
+
+## rd-161348
+
+- Additions
+  - Blocks
+    - Oak Sapling
+- Bugs Fix
+  - General
+    - Raycast block selection fix.
