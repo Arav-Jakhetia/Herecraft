@@ -1,4 +1,4 @@
-package net.herecraft.main;
+package net.herecraft.client.main;
 
 import net.herecraft.world.level.block.Block;
 import net.herecraft.client.input.Keyboard;
@@ -35,6 +35,11 @@ public class Main {
     private static float aspectRatio;
     private static RenderContext renderContext;
     private static Block selectedBlock = Blocks.DIRT;
+    private static boolean debugVisible;
+    private static int fps;
+    private static int frames;
+    private static double fpsTimer;
+    private static final String GAME_VERSION = "0.0.2a";
     private final java.io.File worldFolder;
 
     public static void main(String args[]) {
@@ -83,7 +88,7 @@ public class Main {
         renderContext = new RenderContext();
         renderContext.init(window, vidMode.width(), vidMode.height());
 
-        world = new World();
+        world = new World(worldFolder);
         world.initVulkan(renderContext.getDevice(), renderContext.getPhysicalDevice());
         world.update(8, 24, 0.0f);
 
@@ -115,6 +120,19 @@ public class Main {
             }
 
             Keyboard.update();
+            if(Keyboard.isDown(GLFW_KEY_F3)) {
+                debugVisible = !debugVisible;
+            }
+
+            frames++;
+            fpsTimer += deltaTime;
+
+            if(fpsTimer >= 1.0) {
+                fps = frames;
+                frames = 0;
+                fpsTimer -= 1.0;
+            }
+
             if(Keyboard.isDown(GLFW_KEY_1)) {
                 selectedBlock = Blocks.DIRT;
             }
@@ -169,7 +187,9 @@ public class Main {
             Vector3f cameraForward = camera.getForward();
             Vector3f cameraUp = new Vector3f(cameraRight).cross(cameraForward).normalize();
 
-            renderContext.drawFrame(mvpArray, highlightMvpArray, camera.getPosition(), cameraRight, cameraUp, cameraForward);
+            renderContext.drawFrame(debugVisible
+                    ? "HERECRAFT 0.0.2a\nFPS: " + fps + "\nCHUNK UPDATES: " + world.getChunkUpdateCount()
+                    : "", mvpArray, highlightMvpArray, camera.getPosition(), cameraRight, cameraUp, cameraForward);
 
             java.io.File preview = new java.io.File(worldFolder, "icon.png");
             if(!preview.exists()) {
@@ -185,6 +205,9 @@ public class Main {
     }
 
     public void cleanup() {
+        if(world != null) {
+            world.save();
+        }
         glfwDestroyWindow(window);
         glfwSetErrorCallback(null).free();
     }

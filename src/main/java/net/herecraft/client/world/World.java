@@ -7,6 +7,7 @@ import org.joml.Vector3f;
 import org.lwjgl.vulkan.VkDevice;
 import org.lwjgl.vulkan.VkPhysicalDevice;
 
+import java.io.File;
 import java.util.*;
 
 public class World {
@@ -20,6 +21,12 @@ public class World {
     private float grassTickTimer;
     private final Random random = new Random();
     private final List<BlockParticle> particles = new ArrayList<>();
+    private int chunkUpdateCount;
+    private final File saveFolder;
+
+    public World(File saveFolder) {
+        this.saveFolder = saveFolder;
+    }
 
     public void initVulkan(VkDevice device, VkPhysicalDevice physicalDevice) {
         this.device = device;
@@ -27,6 +34,7 @@ public class World {
     }
 
     public void update(float playerX, float playerZ, float deltaTime) {
+        chunkUpdateCount = 0;
         int playerChunkX = Math.floorDiv((int)Math.floor(playerX), Chunk.SIZE);
         int playerChunkZ = Math.floorDiv((int)Math.floor(playerZ), Chunk.SIZE);
 
@@ -39,13 +47,17 @@ public class World {
 
         for(ChunkPos pos : shouldBeLoaded) {
             if(!chunks.containsKey(pos)) {
-                chunks.put(pos, new Chunk(pos.x, pos.z, this));
+                Chunk chunk = new Chunk(pos.x, pos.z, this);
+                ChunkStorage.load(saveFolder, chunk);
+                chunks.put(pos, chunk);
+                chunkUpdateCount++;
             }
         }
 
         for(ChunkPos pos : shouldBeLoaded) {
             if(!renderers.containsKey(pos)) {
                 renderers.put(pos, new ChunkRenderer(device, physicalDevice, chunks.get(pos)));
+                chunkUpdateCount++;
             }
         }
 
@@ -57,6 +69,7 @@ public class World {
                 if(renderer != null) {
                     renderer.destroy();
                 }
+                ChunkStorage.save(saveFolder, entry.getValue());
                 iterator.remove();
             }
         }
@@ -161,11 +174,21 @@ public class World {
             return;
         }
 
-        for(int i = 0; i < 64; i++) {
+        for(int i = 0; i < 16; i++) {
             Vector3f position = new Vector3f(worldX + 0.15f + random.nextFloat() * 0.7f, worldY + 0.15f + random.nextFloat() * 0.7f, worldZ + 0.15f + random.nextFloat() * 0.7f);
             Vector3f velocity = new Vector3f((random.nextFloat() - 0.5f) * 4.0f, 1.0f + random.nextFloat() * 4.0f, (random.nextFloat() - 0.5f) * 4.0f);
 
-            particles.add(new BlockParticle(brokenBlock, position, velocity, 0.12f + random.nextFloat() * 0.12f));
+            int face = random.nextInt(3);
+            int textureLayer = switch(face) {
+                case 0 -> brokenBlock.getTopTextureLayer();
+                case 1 -> brokenBlock.getSideTextureLayer();
+                default -> brokenBlock.getBottomTextureLayer();
+            };
+
+            float textureU = (random.nextInt(16) + 0.5f) / 16.0f;
+            float textureV = (random.nextInt(16) + 0.5f) / 16.0f;
+
+            particles.add(new BlockParticle(brokenBlock, position, velocity, 0.12f + random.nextFloat() * 0.12f, textureLayer, textureU, textureV));
         }
 
         setBlock(worldX, worldY, worldZ, Blocks.AIR);
@@ -237,6 +260,7 @@ public class World {
         }
 
         renderers.put(pos, new ChunkRenderer(device, physicalDevice, chunk));
+        chunkUpdateCount++;
     }
 
     public int getGroundHeight(int worldX, int worldZ) {
@@ -277,6 +301,16 @@ public class World {
 
     public List<BlockParticle> getParticles() {
         return Collections.unmodifiableList(particles);
+    }
+
+    public int getChunkUpdateCount() {
+        return chunkUpdateCount;
+    }
+
+    public void save() {
+        for(Chunk chunk : chunks.values()) {
+            ChunkStorage.save(saveFolder, chunk);
+        }
     }
 
     public void destroy() {

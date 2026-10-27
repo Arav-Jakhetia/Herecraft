@@ -53,3 +53,18 @@ Herecraft is a learning-focused rendering project that explores how a block-base
 - Bugs Fix
   - General
     - Raycast block selection fix.
+
+## 0.0.2a
+
+- Additions
+  - General
+    - Debug Screen
+      - Added version number.
+      - Added frame rate and chunk update counter.
+    - Font
+      - Added font system.
+- Changes
+    - General
+      - Particle entities texture update.
+    - World generation
+      - Now World saves.

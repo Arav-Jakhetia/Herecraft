@@ -9,12 +9,18 @@ public class BlockParticle {
     private final Vector3f velocity;
     private final float size;
     private float age;
+    private final int textureLayer;
+    private final float textureU;
+    private final float textureV;
 
-    public BlockParticle(Block block, Vector3f position, Vector3f velocity, float size) {
+    public BlockParticle(Block block, Vector3f position, Vector3f velocity, float size, int  textureLayer, float textureU, float textureV) {
         this.block = block;
         this.position = position;
         this.velocity = velocity;
         this.size = size;
+        this.textureLayer = textureLayer;
+        this.textureU = textureU;
+        this.textureV = textureV;
     }
 
     public void update(float deltaTime, World world) {
@@ -25,7 +31,15 @@ public class BlockParticle {
 
         int worldX = (int)Math.floor(position.x);
         int worldZ = (int)Math.floor(position.z);
-        float grountY = world.getGroundHeight(worldX, worldZ) + size * 0.5f;
+        float grountY = 0.0f;
+        int checkY = (int)Math.floor(position.y - size * 0.5f);
+
+        for(int y = checkY; y >= 0; y--) {
+            if(world.isSolidBlock(worldX, y, worldZ)) {
+                grountY = y + 1.0f + size * 0.5f;
+                break;
+            }
+        }
 
         if(position.y < grountY) {
             position.y = grountY;
@@ -49,6 +63,18 @@ public class BlockParticle {
 
     public float getSize() {
         return size;
+    }
+
+    public int getTextureLayer() {
+        return textureLayer;
+    }
+
+    public float getTextureU() {
+        return textureU;
+    }
+
+    public float getTextureV() {
+        return textureV;
     }
 
     public boolean isExpired() {

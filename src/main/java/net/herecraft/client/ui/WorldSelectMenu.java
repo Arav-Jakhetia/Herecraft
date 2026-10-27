@@ -6,12 +6,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.Properties;
-import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class WorldSelectMenu {
-    private static final File WORLD_DIR = new File(System.getProperty("user.home"), ".herecraft/saves");
+    private static final File WORLD_DIR = new File(System.getenv("APPDATA"), ".herecraft/saves");
 
     public static File show() {
         CountDownLatch closed = new CountDownLatch(1);
@@ -73,7 +72,13 @@ public class WorldSelectMenu {
             String name = JOptionPane.showInputDialog(window, "World name:");
             if(name == null || name.isBlank()) return;
 
-            File folder = new File(WORLD_DIR, UUID.randomUUID().toString());
+            String folderName = name.trim().replaceAll("[\\\\/:*?\"<>|]", "_");
+            File folder = new File(WORLD_DIR, folderName);
+
+            int suffix = 2;
+            while(folder.exists()) {
+                folder = new File(WORLD_DIR, folderName + "(" + suffix++ + ")");
+            }
             folder.mkdirs();
 
             Properties properties = new Properties();

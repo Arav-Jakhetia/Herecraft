@@ -6,10 +6,7 @@ import net.herecraft.client.render.buffer.UniformBuffer;
 import net.herecraft.client.render.device.LogicalDevice;
 import net.herecraft.client.render.device.PhysicalDeviceSelector;
 import net.herecraft.client.render.device.QueueFamilyIndices;
-import net.herecraft.client.render.overlay.BlockHighlightRenderer;
-import net.herecraft.client.render.overlay.ChunkRenderer;
-import net.herecraft.client.render.overlay.CrosshairRenderer;
-import net.herecraft.client.render.overlay.ParticleRenderer;
+import net.herecraft.client.render.overlay.*;
 import net.herecraft.client.render.pipeline.*;
 import net.herecraft.client.render.shader.ChunkShaders;
 import net.herecraft.client.render.shader.HighlightShaders;
@@ -68,6 +65,7 @@ public class RenderContext {
     private OverlayShaders overlayShaders;
     private OverlayPipeline overlayPipeline;
     private CrosshairRenderer crosshairRenderer;
+    private FontRenderer fontRenderer;
     private HighlightShaders highlightShaders;
     private HighlightPipeline highlightPipeline;
     private BlockHighlightRenderer blockHighlightRenderer;
@@ -153,6 +151,8 @@ public class RenderContext {
         );
 
         crosshairRenderer = new CrosshairRenderer(logicalDevice.getDevice(), physicalDevice, (float)windowWidth / windowHeight);
+
+        fontRenderer = new  FontRenderer(logicalDevice.getDevice(), physicalDevice);
 
         highlightShaders = new HighlightShaders(logicalDevice.getDevice());
         highlightShaders.compile();
@@ -297,7 +297,7 @@ public class RenderContext {
         }
     }
 
-    public void drawFrame(float[] mvpMatrix, float[] highlightMvp, Vector3f cameraPosition, Vector3f cameraRight, Vector3f cameraUp, Vector3f cameraForward) {
+    public void drawFrame(String debugText, float[] mvpMatrix, float[] highlightMvp, Vector3f cameraPosition, Vector3f cameraRight, Vector3f cameraUp, Vector3f cameraForward) {
         VkDevice device = logicalDevice.getDevice();
 
         try(MemoryStack stack = stackPush()) {
@@ -321,6 +321,7 @@ public class RenderContext {
 
             VkCommandBuffer commandBuffer = commandPool.getCommandBuffer(imageIndex);
             vkResetCommandBuffer(commandBuffer, 0);
+            fontRenderer.update(debugText, currentFrame, swapChain.getExtent().width(), swapChain.getExtent().height());
             recordCommandBuffer(commandBuffer, imageIndex, currentFrame, highlightMvp, stack);
 
             VkSubmitInfo submitInfo = VkSubmitInfo.calloc(stack);
@@ -427,6 +428,15 @@ public class RenderContext {
             vkCmdDraw(commandBuffer, blockHighlightRenderer.getVertexCount(), 1, 0, 0);
         }
 
+        if(fontRenderer.getVertexCount(frameIndex) > 0) {
+            vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, overlayPipeline.getPipeline());
+
+            LongBuffer fontBuffers = stack.longs(fontRenderer.getBuffer(frameIndex).getBuffer());
+            vkCmdBindVertexBuffers(commandBuffer, 0, fontBuffers, stack.longs(0));
+
+            vkCmdDraw(commandBuffer, fontRenderer.getVertexCount(frameIndex), 1, 0, 0);
+        }
+
         vkCmdEndRenderPass(commandBuffer);
 
         if(vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
@@ -480,6 +490,7 @@ public class RenderContext {
         depthResources.destroy();
         textureArray.destroy();
         crosshairRenderer.destroy();
+        fontRenderer.destroy();
         blockHighlightRenderer.destroy();
         highlightPipeline.destroy();
         highlightShaders.destroy();

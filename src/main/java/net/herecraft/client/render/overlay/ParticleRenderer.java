@@ -75,20 +75,19 @@ public class ParticleRenderer {
 
         float[][] corners = {{bottomLeft.x, bottomLeft.y, bottomLeft.z}, {bottomRight.x, bottomRight.y, bottomRight.z}, {topRight.x, topRight.y, topRight.z}, {topLeft.x, topLeft.y, topLeft.z}};
 
-        addQuad(out, corners, particle.getBlock().getSideTextureLayer(), 1.0f);
+        addQuad(out, corners, particle.getTextureLayer(), 1.0f, particle.getTextureU(), particle.getTextureV());
     }
 
-    private void addQuad(List<Float> out, float[][] corners, int textureLayer, float shade) {
+    private void addQuad(List<Float> out, float[][] corners, int textureLayer, float shade, float textureU, float textureV) {
         int[] order = {0, 1, 2, 2, 3, 0};
-        float[][] uv = {{0.0f, 0.0f}, {0.0f, 1.0f}, {1.0f, 1.0f}, {1.0f, 0.0f}};
 
         for(int index : order) {
             out.add(corners[index][0]);
             out.add(corners[index][1]);
             out.add(corners[index][2]);
 
-            out.add(uv[index][0]);
-            out.add(uv[index][1]);
+            out.add(textureU);
+            out.add(textureV);
 
             out.add(shade);
             out.add((float)textureLayer);
